@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Tiptap Rich Text Editor Integration
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Integrate and customize the Tiptap rich text editor for accessible content creation with performance optimization.
+# Details:
+Install and configure Tiptap editor with required extensions. Implement formatting options (bold, italic, lists, headings). Add support for embedding images and videos. Create custom extensions if needed for specific formatting requirements. Implement autosave functionality for drafts using Supabase real-time features. Add character count and platform-specific length validation. Style the editor to match the application design following UI/UX guidelines from section 6 of the PRD using HeroUI and Tailwind CSS. Ensure editor is fully accessible with keyboard navigation and screen reader support. Implement performance optimizations to prevent editor lag with large content. Add comprehensive error handling for content saving and media embedding.
+
+# Test Strategy:
+Test all formatting options in the editor. Verify image and video embedding functionality. Test autosave feature with network interruptions. Ensure editor content can be properly saved and retrieved from Supabase. Test accessibility using keyboard-only navigation and screen readers. Verify performance with large documents.

@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Setup Project Repository and Base Structure
+# Status: in-progress
+# Dependencies: None
+# Priority: high
+# Description: Initialize the project repository with NextJS frontend and Supabase backend structure. Configure basic project settings, dependencies, and CI/CD pipeline.
+# Details:
+Create a monorepo structure with client (NextJS) and server folders. Initialize package.json in both directories. Set up ESLint, Prettier, and TypeScript configurations. Install core dependencies including NextJS, and Supabase client. Configure HeroUI and Tailwind CSS for UI components. Set up environment variables structure for different environments. Implement CI/CD pipeline using GitHub Actions or similar tool for automated testing and deployment. Configure performance monitoring to ensure 2s page load requirement is met.
+
+# Test Strategy:
+Verify project builds successfully. Ensure development server starts without errors. Validate ESLint and TypeScript configurations work correctly. Test CI/CD pipeline with sample commits. Verify HeroUI/Tailwind components render correctly.
