@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Setup Project Repository and Base Structure
-# Status: in-progress
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Initialize the project repository with NextJS frontend and Supabase backend structure. Configure basic project settings, dependencies, and CI/CD pipeline.
