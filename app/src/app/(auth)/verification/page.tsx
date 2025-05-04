@@ -16,10 +16,10 @@ export default function Verification() {
                 <h3 className="text-sm font-medium text-blue-800">Verification email sent</h3>
                 <div className="mt-2 text-sm text-blue-700">
                   <p>
-                    We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.
+                    We&apos;ve sent a verification link to your email address. Please check your inbox and click the link to verify your account.
                   </p>
                   <p className="mt-2">
-                    If you don't see the email, check your spam folder. The link will expire in 24 hours.
+                    If you don&apos;t see the email, check your spam folder. The link will expire in 24 hours.
                   </p>
                 </div>
                 <div className="mt-4">

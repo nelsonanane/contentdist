@@ -1,0 +1,265 @@
+{
+  "metadata": {
+    "name": "Content Dist",
+    "version": "1.0.0",
+    "description": "Content distribution platform for social media creators",
+    "lastUpdated": "2025-05-04T14:53:14.572Z"
+  },
+  "tasks": {
+    "0": {
+      "id": "0",
+      "title": "Setup Project Repository and Base Structure",
+      "description": "Initialize the project repository with NextJS frontend and Supabase backend structure. Configure basic project settings, dependencies, and CI/CD pipeline. [Task ID: 0]",
+      "status": "in-progress",
+      "priority": 2,
+      "dependencies": [],
+      "lastModified": "2025-04-26T14:41:40.777327+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "1": {
+      "id": "1",
+      "title": "Supabase Database Setup and Configuration",
+      "description": "Set up and configure Supabase project for users, brands, projects, content, and subscriptions with proper indexing and performance optimization. [Task ID: 1]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "1"
+      ],
+      "lastModified": "2025-04-26T01:15:00+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "2": {
+      "id": "2",
+      "title": "Supabase Authentication Implementation",
+      "description": "Implement user registration, login, and password recovery using Supabase Auth with both email/password and social login options, including GDPR compliance and role-based access control. [Task ID: 2]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "1",
+        "2"
+      ],
+      "lastModified": "2025-04-26T14:41:41.195984+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "3": {
+      "id": "3",
+      "title": "Authentication UI Components",
+      "description": "Create accessible frontend components for user registration, login, and password recovery with GDPR compliance features. [Task ID: 3]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "1",
+        "3"
+      ],
+      "lastModified": "2025-04-26T14:41:41.404145+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "4": {
+      "id": "4",
+      "title": "Brand Settings Backend Implementation",
+      "description": "Create API endpoints for managing brand assets, color schemes, and stylistic preferences with proper caching and error handling using Supabase. [Task ID: 4]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "2",
+        "3"
+      ],
+      "lastModified": "2025-04-26T14:41:41.588559+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "5": {
+      "id": "5",
+      "title": "Brand Settings UI Components",
+      "description": "Build accessible frontend components for users to manage brand assets and preferences following UI/UX guidelines. [Task ID: 5]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "4",
+        "5"
+      ],
+      "lastModified": "2025-04-26T14:41:41.780323+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "6": {
+      "id": "6",
+      "title": "Tiptap Rich Text Editor Integration",
+      "description": "Integrate and customize the Tiptap rich text editor for accessible content creation with performance optimization. [Task ID: 6]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "1"
+      ],
+      "lastModified": "2025-04-26T14:41:41.964323+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "7": {
+      "id": "7",
+      "title": "Content Creation UI Implementation",
+      "description": "Build the accessible content creation interface with Tiptap editor and platform-specific previews following UI/UX guidelines. [Task ID: 7]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "6",
+        "7"
+      ],
+      "lastModified": "2025-04-26T14:41:42.134382+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "8": {
+      "id": "8",
+      "title": "OpenAI API Integration for Content Conversion",
+      "description": "Implement backend services to convert content for different platforms using OpenAI's API with caching and rate limiting. [Task ID: 8]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "3",
+        "5"
+      ],
+      "lastModified": "2025-04-26T14:41:42.320522+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "9": {
+      "id": "9",
+      "title": "Content Conversion UI Implementation",
+      "description": "Create accessible interface for reviewing and editing AI-generated content versions following UI/UX guidelines. [Task ID: 9]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "8",
+        "9"
+      ],
+      "lastModified": "2025-04-26T14:41:42.507828+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "10": {
+      "id": "10",
+      "title": "Ayrshare API Integration for Social Media Posting",
+      "description": "Implement backend services to post content to multiple platforms via Ayrshare API with error handling and monitoring. [Task ID: 10]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "9"
+      ],
+      "lastModified": "2025-04-28T15:26:55.758541+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "11": {
+      "id": "11",
+      "title": "Posting and Scheduling UI Implementation",
+      "description": "Build accessible interface for posting content immediately or scheduling for future dates following UI/UX guidelines. [Task ID: 11]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "10",
+        "11"
+      ],
+      "lastModified": "2025-04-28T15:26:55.949221+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "12": {
+      "id": "12",
+      "title": "Projects Feature Implementation",
+      "description": "Create backend and frontend components for managing projects with associated brand and platform settings, including role-based access control. [Task ID: 12]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "5",
+        "11"
+      ],
+      "lastModified": "2025-04-28T15:26:56.122564+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "13": {
+      "id": "13",
+      "title": "Dashboard Analytics Implementation",
+      "description": "Implement analytics dashboard with metrics from Ayrshare API and internal data with performance optimization and caching. [Task ID: 13]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "11",
+        "13"
+      ],
+      "lastModified": "2025-04-28T15:26:56.288933+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "14": {
+      "id": "14",
+      "title": "Dashboard UI Components",
+      "description": "Build accessible frontend components for displaying analytics, scheduled posts, and recent activity following UI/UX guidelines. [Task ID: 14]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "12",
+        "14"
+      ],
+      "lastModified": "2025-04-28T15:26:56.470401+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "15": {
+      "id": "15",
+      "title": "Stripe Integration for Payment Processing",
+      "description": "Implement Stripe API integration for handling payments and subscriptions with GDPR compliance and comprehensive error handling. [Task ID: 15]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "3"
+      ],
+      "lastModified": "2025-04-28T15:26:56.671991+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "16": {
+      "id": "16",
+      "title": "Subscription Management UI",
+      "description": "Build accessible frontend components for managing subscription plans and billing information following UI/UX guidelines. [Task ID: 16]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "4",
+        "16"
+      ],
+      "lastModified": "2025-04-28T15:26:56.870378+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "17": {
+      "id": "17",
+      "title": "User Profile Management Implementation",
+      "description": "Create backend and frontend components for managing user profiles and preferences with GDPR compliance and accessibility features. [Task ID: 17]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "3",
+        "4"
+      ],
+      "lastModified": "2025-04-28T15:26:57.037629+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "18": {
+      "id": "18",
+      "title": "Landing Page Implementation",
+      "description": "Design and implement the accessible marketing landing page with platform overview, sign-up forms, and GDPR compliance features. [Task ID: 18]",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [
+        "1"
+      ],
+      "lastModified": "2025-04-28T15:26:57.217139+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    },
+    "19": {
+      "id": "19",
+      "title": "System Testing and Deployment Setup",
+      "description": "Implement comprehensive testing, monitoring, and set up deployment pipeline for the application with performance optimization. [Task ID: 19]",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": [
+        "1",
+        "2",
+        "3",
+        "11",
+        "16"
+      ],
+      "lastModified": "2025-04-28T15:26:57.388653+00:00",
+      "project_id": "ee52d569-00c4-4263-abd0-10a7aa2e6db1"
+    }
+  }
+}

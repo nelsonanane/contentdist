@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 
 export default function Dashboard() {
   const router = useRouter()
-  const { user, isLoading, signOut } = useAuth()
+  const { user, isLoading } = useAuth()
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -35,28 +35,12 @@ export default function Dashboard() {
   // User is authenticated, show dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">ContentDist</h1>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-700">
-              {user.email}
-            </div>
-            <button
-              onClick={() => signOut()}
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Welcome to your dashboard</h2>
           <p className="text-gray-600 mb-6">
-            You're now signed in to your ContentDist account. From here, you can manage your content distribution across multiple platforms.
+            You&apos;re now signed in to your ContentDist account. From here, you can manage your content distribution across multiple platforms.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -7,7 +7,7 @@ export type User = {
   email: string;
   full_name?: string;
   avatar_url?: string;
-  preferences?: any;
+  preferences?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -19,7 +19,7 @@ export type BrandSetting = {
   primary_color: string;
   secondary_color: string;
   font: string;
-  theme?: any;
+  theme?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -29,7 +29,7 @@ export type Project = {
   brand_id?: string;
   name: string;
   description?: string;
-  settings?: any;
+  settings?: Record<string, unknown>;
   created_at: string;
   is_archived: boolean;
 };
@@ -45,8 +45,8 @@ export type ContentPost = {
   status: 'draft' | 'published' | 'archived';
   scheduled_for?: string;
   published_at?: string;
-  platforms?: any;
-  metrics?: any;
+  platforms?: Record<string, unknown>;
+  metrics?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -55,7 +55,7 @@ export type Schedule = {
   project_id: string;
   user_id: string;
   name: string;
-  frequency: any;
+  frequency: Record<string, unknown>;
   platforms?: string[];
   is_active: boolean;
   created_at: string;

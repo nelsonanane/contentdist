@@ -22,7 +22,11 @@ export default function SignIn() {
       const { error } = await signIn(email, password)
       
       if (error) {
-        setError(error.message || 'Failed to sign in')
+        // Handle different error types safely
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : 'Failed to sign in'
+        setError(errorMessage)
         return
       }
       

@@ -35,7 +35,11 @@ export default function SignUp() {
       })
       
       if (error) {
-        setError(error.message || 'Failed to sign up')
+        // Handle different error types safely
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : 'Failed to sign up'
+        setError(errorMessage)
         return
       }
       

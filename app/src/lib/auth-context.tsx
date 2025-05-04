@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session } from '@supabase/supabase-js'
+import { User, Session, AuthError } from '@supabase/supabase-js'
 import { createClient } from './supabase-browser'
 
 type AuthContextType = {
@@ -9,27 +9,27 @@ type AuthContextType = {
   session: Session | null
   isLoading: boolean
   signUp: (email: string, password: string, metadata?: object) => Promise<{
-    error: any | null
-    data: any | null
+    data: { user: User | null; session: Session | null } | null
+    error: AuthError | unknown | null
   }>
   signIn: (email: string, password: string) => Promise<{
-    error: any | null
-    data: any | null
+    data: { user: User | null; session: Session | null } | null
+    error: AuthError | unknown | null
   }>
   signInWithGoogle: () => Promise<void>
   signInWithFacebook: () => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{
-    error: any | null
-    data: any | null
+    data: Record<string, unknown> | null
+    error: AuthError | unknown | null
   }>
   updateUser: (data: object) => Promise<{
-    error: any | null
-    data: any | null
+    data: { user: User | null } | null
+    error: AuthError | unknown | null
   }>
   deleteAccount: () => Promise<{
-    error: any | null
-    data: any | null
+    data: Record<string, unknown> | null
+    error: AuthError | unknown | null
   }>
 }
 
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     getInitialSession()
-  }, [])
+  }, [supabase.auth])
 
   const signUp = async (email: string, password: string, metadata?: object) => {
     try {
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/callback`,
       },
     })
   }
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/callback`,
       },
     })
   }

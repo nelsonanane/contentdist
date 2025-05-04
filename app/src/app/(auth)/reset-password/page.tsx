@@ -20,7 +20,11 @@ export default function ResetPassword() {
       const { error } = await resetPassword(email)
       
       if (error) {
-        setError(error.message || 'Failed to send password reset email')
+        // Handle different error types safely
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : 'Failed to send password reset email'
+        setError(errorMessage)
         return
       }
       
@@ -41,7 +45,7 @@ export default function ResetPassword() {
             Reset your password
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email and we'll send you a link to reset your password
+            Enter your email and we&apos;ll send you a link to reset your password
           </p>
         </div>
         
@@ -65,7 +69,7 @@ export default function ResetPassword() {
                 <h3 className="text-sm font-medium text-green-800">Success</h3>
                 <div className="mt-2 text-sm text-green-700">
                   <p>
-                    Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.
+                    Check your email for a link to reset your password. If it doesn&apos;t appear within a few minutes, check your spam folder.
                   </p>
                 </div>
                 <div className="mt-4">
