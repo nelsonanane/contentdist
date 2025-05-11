@@ -75,23 +75,23 @@ export default function SignUp() {
     <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-100">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-300">
             Or{' '}
-            <Link href="/signin" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/signin" className="font-medium text-blue-400 hover:text-blue-300">
               sign in to your existing account
             </Link>
           </p>
         </div>
         
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="rounded-md bg-red-900/30 p-4 border border-red-800">
             <div className="flex">
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <div className="mt-2 text-sm text-red-700">
+                <h3 className="text-sm font-medium text-red-400">Error</h3>
+                <div className="mt-2 text-sm text-red-300">
                   <p>{error}</p>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function SignUp() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4 rounded-md shadow-sm">
             <div>
-              <label htmlFor="full-name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="full-name" className="block text-sm font-medium text-gray-200">
                 Full Name
               </label>
               <input
@@ -111,7 +111,7 @@ export default function SignUp() {
                 type="text"
                 autoComplete="name"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-100 bg-gray-800 ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6"
                 placeholder="Full Name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -119,7 +119,7 @@ export default function SignUp() {
             </div>
             
             <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email-address" className="block text-sm font-medium text-gray-200">
                 Email address
               </label>
               <input
@@ -128,7 +128,7 @@ export default function SignUp() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-100 bg-gray-800 ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -136,7 +136,7 @@ export default function SignUp() {
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-200">
                 Password
               </label>
               <input
@@ -145,12 +145,12 @@ export default function SignUp() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-100 bg-gray-800 ring-1 ring-inset ring-gray-700 placeholder:text-gray-500 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm sm:leading-6"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-400">
                 Password must be at least 8 characters long
               </p>
             </div>
@@ -164,18 +164,18 @@ export default function SignUp() {
                   name="gdprConsent"
                   type="checkbox"
                   required
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"
                   checked={gdprConsent}
                   onChange={(e) => setGdprConsent(e.target.checked)}
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="gdpr-consent" className="font-medium text-gray-700">
+                <label htmlFor="gdpr-consent" className="font-medium text-gray-200">
                   Data Processing Consent (Required)
                 </label>
-                <p className="text-gray-500">
+                <p className="text-gray-400">
                   I agree to the processing of my personal data as described in the{' '}
-                  <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-500">
+                  <Link href="/privacy-policy" className="text-blue-400 hover:text-blue-300">
                     Privacy Policy
                   </Link>
                   .
@@ -189,16 +189,16 @@ export default function SignUp() {
                   id="marketing-consent"
                   name="marketingConsent"
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-900"
                   checked={marketingConsent}
                   onChange={(e) => setMarketingConsent(e.target.checked)}
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="marketing-consent" className="font-medium text-gray-700">
+                <label htmlFor="marketing-consent" className="font-medium text-gray-200">
                   Marketing Communications (Optional)
                 </label>
-                <p className="text-gray-500">
+                <p className="text-gray-400">
                   I agree to receive marketing communications about products, services, and features.
                 </p>
               </div>
@@ -209,7 +209,7 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-blue-400"
+              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:bg-blue-800 disabled:text-blue-100"
             >
               {isLoading ? 'Creating account...' : 'Create account'}
             </button>
@@ -219,10 +219,10 @@ export default function SignUp() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">Or continue with</span>
+              <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
             </div>
           </div>
 
@@ -230,7 +230,7 @@ export default function SignUp() {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700"
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -244,7 +244,7 @@ export default function SignUp() {
             <button
               type="button"
               onClick={handleFacebookSignIn}
-              className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700"
             >
               <svg className="h-5 w-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385h-3.047v-3.47h3.047v-2.642c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.514c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385c5.737-.9 10.125-5.864 10.125-11.854z" />

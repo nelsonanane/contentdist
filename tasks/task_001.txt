@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Setup Project Repository and Base Structure
-# Status: done
+# Status: in-progress
 # Dependencies: None
 # Priority: high
 # Description: Initialize the project repository with NextJS frontend and Supabase backend structure. Configure basic project settings, dependencies, and CI/CD pipeline.
@@ -9,3 +9,228 @@ Create a monorepo structure with client (NextJS) and server folders. Initialize 
 
 # Test Strategy:
 Verify project builds successfully. Ensure development server starts without errors. Validate ESLint and TypeScript configurations work correctly. Test CI/CD pipeline with sample commits. Verify HeroUI/Tailwind components render correctly.
+
+# Subtasks:
+## 1. Initialize NextJS Project and Configure TypeScript [in-progress]
+### Dependencies: None
+### Description: Set up the base NextJS project with TypeScript configuration and establish the monorepo structure with client and server folders.
+### Details:
+1. Create the project root directory
+2. Initialize git repository with `git init`
+3. Create monorepo structure with client and server folders
+4. In the client folder, initialize NextJS with TypeScript: `npx create-next-app@latest . --typescript`
+5. Configure tsconfig.json with appropriate paths and settings
+6. Set up .gitignore file with appropriate entries for NextJS, node_modules, etc.
+7. Initialize package.json in the server folder
+8. Create README.md with project overview and setup instructions
+9. Test the setup by running the NextJS development server and verifying it starts correctly
+
+<info added on 2025-04-19T16:22:18.286Z>
+Here's the additional information for the subtask:
+
+```
+## Updated Implementation Approach
+
+Instead of a traditional monorepo with separate client and server directories, we'll leverage Next.js 14's built-in server components and API routes for a more efficient architecture:
+
+### Project Initialization
+```bash
+npx create-next-app@latest . --typescript --eslint --tailwind --app --src-dir
+```
+
+### Project Structure
+```
+/src
+  /app             # App Router pages with server components
+    /api           # API routes (replaces separate server)
+  /components      # Client and server components
+  /lib             # Shared utilities and business logic
+  /types           # TypeScript type definitions
+  /hooks           # Custom React hooks
+  /styles          # Global styles and theme configuration
+/public            # Static assets
+```
+
+### TypeScript Configuration
+Add to tsconfig.json:
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@types/*": ["./src/types/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strict": true
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+### Server-Side Logic
+- Use server components (`.tsx` files in app/ directory) for server-rendered UI
+- Create API routes in `app/api` directory for data operations
+- Use server actions for form submissions and mutations
+
+### Benefits
+- Simplified deployment (single application)
+- Reduced bundle size with server components
+- Improved type safety across client/server boundary
+- Better developer experience with unified codebase
+```
+</info added on 2025-04-19T16:22:18.286Z>
+
+<info added on 2025-04-19T16:26:01.445Z>
+## Implementation Progress Update
+
+### Completed Steps
+- Project structure created with all required directories (app, components, lib, types, hooks, styles)
+- Package.json initialized with the following key dependencies:
+  ```json
+  {
+    "dependencies": {
+      "next": "14.1.0",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "typescript": "^5.3.3",
+      "tailwindcss": "^3.4.1",
+      "postcss": "^8.4.35",
+      "autoprefixer": "^10.4.17"
+    },
+    "devDependencies": {
+      "@types/node": "^20.11.5",
+      "@types/react": "^18.2.48",
+      "@types/react-dom": "^18.2.18",
+      "eslint": "^8.56.0",
+      "eslint-config-next": "14.1.0"
+    }
+  }
+  ```
+- Tailwind CSS configured with custom theme settings in `tailwind.config.js`
+- Basic app structure implemented with:
+  - `src/app/layout.tsx` (RootLayout with metadata)
+  - `src/app/page.tsx` (Home page with server component)
+  - `src/app/api/health/route.ts` (Health check API endpoint)
+
+### Current Issues
+- ESLint showing 3 warnings related to unused variables
+- Tailwind purge configuration needs optimization for production
+
+### Next Steps Details
+1. Test development server:
+   ```bash
+   npm run dev
+   # Verify at http://localhost:3000 and API at http://localhost:3000/api/health
+   ```
+
+2. Fix linter errors:
+   ```bash
+   npm run lint -- --fix
+   ```
+
+3. Add comprehensive `.gitignore`:
+   ```
+   # dependencies
+   /node_modules
+   /.pnp
+   .pnp.js
+
+   # testing
+   /coverage
+
+   # next.js
+   /.next/
+   /out/
+
+   # production
+   /build
+
+   # misc
+   .DS_Store
+   *.pem
+
+   # debug
+   npm-debug.log*
+   yarn-debug.log*
+   yarn-error.log*
+
+   # local env files
+   .env*.local
+   .env
+
+   # vercel
+   .vercel
+
+   # typescript
+   *.tsbuildinfo
+   next-env.d.ts
+   ```
+
+4. README.md should include development commands, environment setup, and architecture overview
+</info added on 2025-04-19T16:26:01.445Z>
+
+## 2. Configure HeroUI and Tailwind CSS for Styling [pending]
+### Dependencies: 1.1
+### Description: Integrate HeroUI components library and set up Tailwind CSS for styling the application.
+### Details:
+1. Install Tailwind CSS in the client project: `npm install -D tailwindcss postcss autoprefixer`
+2. Initialize Tailwind configuration: `npx tailwindcss init -p`
+3. Configure content paths in tailwind.config.js
+4. Add Tailwind directives to global CSS file
+5. Install HeroUI: `npm install @heroui/react` (or appropriate package name)
+6. Configure HeroUI in the project
+7. Create a theme configuration file for customizing Tailwind and HeroUI
+8. Set up a components test page to verify HeroUI components render correctly
+9. Test the styling setup by creating a sample component with Tailwind classes and HeroUI components
+
+## 3. Set Up ESLint, Prettier, and Code Quality Tools [pending]
+### Dependencies: 1.1
+### Description: Configure code quality tools including ESLint and Prettier to ensure consistent code style and quality across the project.
+### Details:
+1. Install ESLint and Prettier: `npm install -D eslint prettier eslint-config-prettier eslint-plugin-react`
+2. Create ESLint configuration file (.eslintrc.js) with appropriate rules
+3. Create Prettier configuration file (.prettierrc)
+4. Set up pre-commit hooks using husky and lint-staged
+5. Configure VSCode settings for the project (settings.json and extensions.json)
+6. Add npm scripts for linting and formatting in package.json
+7. Create .editorconfig file for consistent editor settings
+8. Run linting on existing files and fix any issues
+9. Test the setup by intentionally writing code that violates rules and verifying that linting catches the issues
+
+## 4. Configure Environment Variables and Supabase Integration [pending]
+### Dependencies: 1.1
+### Description: Set up environment variables structure for different environments and integrate Supabase client for backend connectivity.
+### Details:
+1. Install Supabase client: `npm install @supabase/supabase-js`
+2. Create .env.local, .env.development, and .env.production files
+3. Add environment variables for Supabase URL and API keys
+4. Create a utils/supabase.ts file to initialize the Supabase client
+5. Set up environment variable validation using a library like zod-env
+6. Configure NextJS to use the environment variables
+7. Create a basic API test endpoint to verify Supabase connection
+8. Document the environment setup process in README.md
+9. Test the Supabase connection by making a simple query to the database
+
+## 5. Implement CI/CD Pipeline and Performance Monitoring [pending]
+### Dependencies: 1.1, 1.2, 1.3, 1.4
+### Description: Set up CI/CD pipeline using GitHub Actions and configure performance monitoring to ensure the 2s page load requirement is met.
+### Details:
+1. Create GitHub Actions workflow file (.github/workflows/ci.yml) for continuous integration
+2. Configure the CI pipeline to run tests, linting, and type checking
+3. Set up deployment workflow for different environments (staging, production)
+4. Install and configure a performance monitoring tool (e.g., Next.js Analytics, Lighthouse CI)
+5. Set up performance budgets to enforce the 2s page load requirement
+6. Create a basic performance test that measures initial page load time
+7. Configure automated performance testing in the CI pipeline
+8. Set up notifications for performance regressions
+9. Test the CI/CD pipeline by pushing a change and verifying that the workflow runs correctly
+
