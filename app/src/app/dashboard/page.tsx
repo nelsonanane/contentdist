@@ -43,7 +43,7 @@ export default function Dashboard() {
             You&apos;re now signed in to your ContentDist account. From here, you can manage your content distribution across multiple platforms.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Projects</h3>
               <p className="text-blue-600 dark:text-blue-400 text-sm mb-3">
@@ -71,6 +71,18 @@ export default function Dashboard() {
               </p>
               <button className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300">
                 View analytics
+              </button>
+            </div>
+            
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+              <h3 className="font-medium text-amber-800 dark:text-amber-300 mb-2">Character Generator</h3>
+              <p className="text-amber-600 dark:text-amber-400 text-sm mb-3">
+                Create videos with animated characters
+              </p>
+              <button 
+                onClick={() => router.push('/dashboard/content-generator')}
+                className="text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300">
+                Create content
               </button>
             </div>
           </div>

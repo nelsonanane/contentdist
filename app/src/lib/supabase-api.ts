@@ -1,15 +1,16 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/cookies'
+import type { Database } from './database.types'
 
 /**
- * Creates a Supabase client for server components (NOT for API routes)
- * For API routes, use createAPIClient from supabase-api.ts instead
+ * Creates a Supabase client for use in API routes
+ * This uses the createServerClient from @supabase/ssr for better cookie handling
  */
-export function createClient() {
-  const cookieStore = cookies()
+export async function createAPIClient() {
+  // In Next.js 15, cookies() is asynchronous and must be awaited
+  const cookieStore = await cookies()
   
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -39,4 +40,26 @@ export function createClient() {
       },
     }
   )
+}
+
+/**
+ * Gets the current user from the session
+ * For use in API routes to authenticate requests
+ * Uses getUser() for better security as recommended by Supabase
+ */
+export async function getUserFromSession() {
+  try {
+    // Since createAPIClient is now async, we need to await it
+    const supabase = await createAPIClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      return null
+    }
+    
+    return user
+  } catch (err) {
+    console.error('Session verification failed:', err)
+    return null
+  }
 }
