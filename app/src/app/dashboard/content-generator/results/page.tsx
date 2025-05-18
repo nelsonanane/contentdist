@@ -135,66 +135,81 @@ export default function ResultsPage() {
   };
 
   useEffect(() => {
+    // Use a ref to track if this effect is still mounted
+    let isMounted = true;
+    
+    // Function to safely set state only if component is still mounted
+    const safeSetPollingInterval = (interval: NodeJS.Timeout | null) => {
+      if (isMounted) {
+        setPollingInterval(interval);
+      }
+    };
+
+    // Cleanup function to run on unmount or dependency change
+    const cleanup = () => {
+      isMounted = false;
+      
+      // Clear any active intervals/timeouts
+      if (pollingInterval) {
+        clearTimeout(pollingInterval);
+        clearInterval(pollingInterval);
+      }
+      
+      // Remove from the polling job IDs set
+      if (id) {
+        console.log(`Cleaning up polling for job ${id}`);
+        pollingJobIds.delete(id);
+      }
+    };
+    
     // Redirect if not authenticated
     if (!isLoading && !user) {
       router.push("/signin");
-      return;
+      return cleanup;
     }
 
     if (!id) {
       router.push("/dashboard/content-generator");
-      return;
+      return cleanup;
     }
     
     // Prevent duplicate polling for the same job ID
     if (id && pollingJobIds.has(id)) {
       console.log(`Already polling for job ${id}, skipping duplicate setup`);
-      return;
+      return cleanup;
     }
     
     // Add to polling job IDs set
-    if (id) pollingJobIds.add(id);
+    if (id) {
+      console.log(`Starting to poll for job ${id}`);
+      pollingJobIds.add(id);
+    }
 
     // Initial fetch
     fetchJobStatus();
 
-    // Only set up polling if we don't already have an error status
-    if (resultData.status !== "error") {
-      // Use adaptive polling with initial 10-second interval
+    // Only set up polling if we don't already have an error or completed status
+    if (resultData.status !== "error" && resultData.status !== "completed") {
+      // Calculate initial delay based on current job status
       const initialDelay = getPollingDelay(0, resultData.status || 'default');
-      console.log(`Setting up polling for job ${id} with initial delay: ${initialDelay}ms`);
+      console.log(`Setting up polling for job ${id} with delay: ${initialDelay}ms`);
       
-      // Use setTimeout instead of setInterval for adaptive polling
-      const timeout = setTimeout(() => {
-        // Fetch immediately
-        fetchJobStatus();
-        
-        // Then set up interval with adaptive delay based on status
-        const adaptiveInterval = setInterval(() => {
-          // Calculate new delay based on current status and poll count
-          const newDelay = getPollingDelay(pollCount, resultData.status || 'default');
-          console.log(`Polling job ${id} with adaptive delay: ${newDelay}ms, status: ${resultData.status}`);
-          
-          // Clear current interval and set a new one with updated delay
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-          }
-          
-          setPollingInterval(setInterval(fetchJobStatus, newDelay));
-          
-        }, initialDelay);
-        
-        setPollingInterval(adaptiveInterval);
-      }, 0);
+      // Set up a simple interval that uses the current state for each call
+      const newInterval = setInterval(() => {
+        // This will use the current state values when the interval executes
+        if (isMounted) {
+          console.log(`Polling job ${id} - interval triggered`);
+          fetchJobStatus();
+        }
+      }, initialDelay);
       
-      // Store the initial timeout as our polling interval
-      setPollingInterval(timeout);
+      // Store the interval
+      safeSetPollingInterval(newInterval);
     }
-
+    
+    // Return cleanup function
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
+      cleanup();
     };
   }, [id, router, isLoading, user, resultData.status]);
 

@@ -51,7 +51,7 @@ export async function generateImage({
     
     if (characterType === 'baby') {
       // Use the specific baby prompt provided
-      imagePrompt = prompt || `Generate a high resolution image of a very cute chubby ${characterAttributes.babyHair} hair ${characterAttributes.ethnicity} baby wearing large over-ear headphones speaking into a professional podcast microphone. The baby should be sitting in a professional podcast studio with appropriate lighting and background.`;
+      imagePrompt = prompt || `Generate a high resolution image prompt of a very cute chubby ${characterAttributes.babyHair} hair ${characterAttributes.ethnicity} baby wearing large over-ear headphones speaking into a professional podcast microphone. The baby should be sitting in a professional podcast studio with appropriate lighting and background.`;
     } else if (characterType === 'animal') {
       imagePrompt = prompt || `Generate a high resolution image of a ${characterAttributes.trait} ${characterAttributes.species} wearing headphones in a podcast studio setup. The animal should be positioned in front of a professional microphone with proper studio lighting and podcast equipment visible in the background.`;
     } else if (characterType === 'historical') {
