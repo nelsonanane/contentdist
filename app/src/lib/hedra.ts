@@ -315,6 +315,14 @@ async function waitForHedraJobCompletion(
       
       try {
         // Use the official status endpoint as specified in the API docs
+        console.log(`\n\n========== HEDRA API REQUEST (Attempt ${attempt}/${maxAttempts}) ==========`);
+        console.log(`URL: https://api.hedra.com/web-app/public/generations/${jobId}/status`);
+        console.log(`Method: GET`);
+        console.log(`Headers: ${JSON.stringify({
+          "X-API-Key": "[REDACTED]", // Don't log the actual API key
+          "Accept": "application/json"
+        }, null, 2)}`);
+        
         const statusResponse = await axios({
           method: "get",
           url: `https://api.hedra.com/web-app/public/generations/${jobId}/status`,
@@ -325,14 +333,73 @@ async function waitForHedraJobCompletion(
           timeout: 10000 // 10 second timeout
         });
         
-        // Process the response
-        if (statusResponse.data) {
-          console.log(`Job status (attempt ${attempt}/${maxAttempts}):`, statusResponse.data);
+        // Process the response - log EVERYTHING
+        console.log(`\n========== HEDRA API RESPONSE (Attempt ${attempt}/${maxAttempts}) ==========`);
+        console.log(`Status Code: ${statusResponse.status}`);
+        console.log(`Status Text: ${statusResponse.statusText}`);
+        console.log(`Response Headers: ${JSON.stringify(statusResponse.headers, null, 2)}`);
+        console.log(`Response Data Type: ${typeof statusResponse.data}`);
+        console.log(`Is Array: ${Array.isArray(statusResponse.data)}`);
+        console.log(`\nFULL RESPONSE DATA:`);
+        console.log(JSON.stringify(statusResponse.data, null, 2));
+        console.log(`\n==========================================================\n`);
+        
+        if (statusResponse.data) {          
+          // Detailed structure analysis
+          console.log('RESPONSE STRUCTURE ANALYSIS:');
+          
+          // Top level properties
+          const topLevelProps = Object.keys(statusResponse.data);
+          console.log(`- Top level properties: ${topLevelProps.join(', ')}`);
+          console.log(`- Status property value: ${statusResponse.data.status || 'N/A'}`);
+          
+          // Check for direct URL property
+          if (statusResponse.data.url) {
+            console.log(`- Direct URL property found: ${statusResponse.data.url}`);
+          }
+          
+          // Check for asset property
+          if (statusResponse.data.asset) {
+            console.log(`- Asset property found with type: ${typeof statusResponse.data.asset}`);
+            console.log(`- Asset properties: ${Object.keys(statusResponse.data.asset).join(', ')}`);
+            console.log(`- Asset URL: ${statusResponse.data.asset.url || 'not found'}`);
+          }
+          
+          // Check for array structure
+          if (Array.isArray(statusResponse.data)) {
+            console.log(`- Response is an array with ${statusResponse.data.length} items`);
+            
+            if (statusResponse.data.length > 0) {
+              const firstItem = statusResponse.data[0];
+              console.log(`- First item properties: ${Object.keys(firstItem).join(', ')}`);
+              
+              if (firstItem.asset) {
+                console.log(`- First item has asset property with type: ${typeof firstItem.asset}`);
+                console.log(`- First item asset properties: ${Object.keys(firstItem.asset).join(', ')}`);
+                console.log(`- First item asset URL: ${firstItem.asset.url || 'not found'}`);
+              }
+            }
+          }
           
           // Check if the job is complete
           // According to Hedra API docs, status should be 'complete' not 'completed'
           if (statusResponse.data.status === "complete" || statusResponse.data.status === "completed") {
-            // According to the API documentation, the URL is in the 'url' property
+            // Based on the example response, check for the nested asset.url structure first
+            // This is the most common structure in the actual API response
+            if (Array.isArray(statusResponse.data) && statusResponse.data.length > 0) {
+              // Handle array response format
+              const firstItem = statusResponse.data[0];
+              if (firstItem?.asset?.url) {
+                console.log(`Video URL found in array[0].asset.url: ${firstItem.asset.url}`);
+                return firstItem.asset.url;
+              }
+            } else if (statusResponse.data.asset && statusResponse.data.asset.url) {
+              // Handle direct object response with asset.url
+              console.log(`Video URL found in asset.url: ${statusResponse.data.asset.url}`);
+              return statusResponse.data.asset.url;
+            }
+            
+            // Check for the url at the top level (according to API docs)
             if (statusResponse.data.url) {
               console.log(`Video URL found: ${statusResponse.data.url}`);
               return statusResponse.data.url;
