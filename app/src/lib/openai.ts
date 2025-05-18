@@ -160,16 +160,19 @@ export async function generateScript({
         The monologue should be in the first person and focus on the topic provided.`;
     }
     
-    // User prompt requesting a Joe Rogan style for adult characters
+    // Use the Joe Rogan style prompt for all character types
+    userPrompt = `Generate a podcast-style monologue in the style of Joe Rogan, discussing the topic of ${topic}. Ensure the tone is casual, intense, and slightly conspiratorial, with tangents, unexpected analogies, and the characteristic Joe Rogan style of pondering deep existential questions.
+
+Avoid line breaks, special characters, or formatting that would invalidate the JSON structure. Keep it flowing naturally as if it's a segment from a podcast episode.
+Ensure the entire monologue is output as a single JSON object called Podcast and is ONLY 500 characters long.`;
+    
+    // Add character-specific context if needed
     if (characterType === 'historical') {
-      userPrompt = `Generate a podcast-style monologue in the style of Joe Rogan, from the perspective of a ${characterAttributes.nationality} ${characterAttributes.era} era figure, discussing the topic of ${topic}. 
-        Ensure the tone is casual, intense, and slightly conspiratorial, with tangents, unexpected analogies, and period-appropriate references.
-        The script should be between 150-250 words and should include speech patterns appropriate for the character.
-        Do not include any instructions or explanations - only output the actual script content.`;
-    } else {
-      userPrompt = `Write a short, entertaining podcast script from the perspective of ${characterDescription} discussing ${topic}.
-        The script should be between 150-250 words and should include speech patterns appropriate for the character.
-        Do not include any instructions or explanations - only output the actual script content.`;
+      systemPrompt += `\n\nThe monologue should be from the perspective of a ${characterAttributes.nationality} ${characterAttributes.era} era figure, with period-appropriate references while maintaining Joe Rogan's style.`;
+    } else if (characterType === 'baby') {
+      systemPrompt += `\n\nThe monologue should be from the perspective of a baby but in Joe Rogan's style - imagine Joe Rogan pretending to be a baby while still sounding like himself.`;
+    } else if (characterType === 'animal') {
+      systemPrompt += `\n\nThe monologue should be from the perspective of a ${characterAttributes.species} but in Joe Rogan's style - imagine Joe Rogan taking on the personality of this animal while still sounding like himself.`;
     }
     
     const completion = await openai.chat.completions.create({

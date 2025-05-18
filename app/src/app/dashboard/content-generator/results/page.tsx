@@ -33,10 +33,53 @@ export default function ResultsPage() {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null
   );
+  // Track the last time we made a request to prevent excessive polling
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+  // Track how many times we've polled to implement exponential backoff
+  const [pollCount, setPollCount] = useState<number>(0);
+  // Store job IDs we're already polling for to prevent duplicate polling
+  const [pollingJobIds] = useState<Set<string>>(new Set());
+
+  // Calculate polling delay with exponential backoff
+  const getPollingDelay = (count: number, status: string): number => {
+    // Base polling intervals by status (in milliseconds)
+    const baseIntervals: Record<string, number> = {
+      generating_script: 5000,    // 5 seconds for script generation
+      generating_image: 8000,     // 8 seconds for image generation
+      generating_audio: 10000,    // 10 seconds for audio generation
+      generating_video: 15000,    // 15 seconds for video generation
+      default: 10000,             // 10 seconds default
+    };
+    
+    // Get base interval based on status
+    const baseInterval = baseIntervals[status] || baseIntervals.default;
+    
+    // For video generation, use longer intervals with exponential backoff
+    if (status === 'generating_video') {
+      // Max delay capped at 60 seconds (1 minute)
+      return Math.min(baseInterval * Math.pow(1.5, Math.min(count, 5)), 60000);
+    }
+    
+    // For other statuses, use moderate backoff
+    // Max delay capped at 30 seconds
+    return Math.min(baseInterval * Math.pow(1.2, Math.min(count, 3)), 30000);
+  };
 
   const fetchJobStatus = async () => {
     if (!id || !user) return;
-
+    
+    // Throttle requests - ensure minimum time between requests
+    const now = Date.now();
+    const minRequestInterval = 3000; // 3 seconds minimum between requests
+    
+    if (now - lastRequestTime < minRequestInterval) {
+      console.log('Throttling job status request - too soon since last request');
+      return;
+    }
+    
+    // Update last request time
+    setLastRequestTime(now);
+    
     try {
       // No need for auth token, session is handled via cookies
       const response = await fetch(
@@ -49,6 +92,10 @@ export default function ResultsPage() {
       }
 
       const data = await response.json();
+      
+      // Increment poll count for backoff calculation
+      setPollCount(prevCount => prevCount + 1);
+      
       setResultData({
         status: data.status,
         script: data.script,
@@ -65,6 +112,9 @@ export default function ResultsPage() {
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
+        
+        // Remove from polling job IDs set
+        if (id) pollingJobIds.delete(id);
       }
     } catch (error) {
       console.error("Error fetching job status:", error);
@@ -78,6 +128,9 @@ export default function ResultsPage() {
         clearInterval(pollingInterval);
         setPollingInterval(null);
       }
+      
+      // Remove from polling job IDs set
+      if (id) pollingJobIds.delete(id);
     }
   };
 
@@ -92,15 +145,50 @@ export default function ResultsPage() {
       router.push("/dashboard/content-generator");
       return;
     }
+    
+    // Prevent duplicate polling for the same job ID
+    if (id && pollingJobIds.has(id)) {
+      console.log(`Already polling for job ${id}, skipping duplicate setup`);
+      return;
+    }
+    
+    // Add to polling job IDs set
+    if (id) pollingJobIds.add(id);
 
     // Initial fetch
     fetchJobStatus();
 
     // Only set up polling if we don't already have an error status
     if (resultData.status !== "error") {
-      // Set up polling every 3 seconds
-      const interval = setInterval(fetchJobStatus, 3000);
-      setPollingInterval(interval);
+      // Use adaptive polling with initial 10-second interval
+      const initialDelay = getPollingDelay(0, resultData.status || 'default');
+      console.log(`Setting up polling for job ${id} with initial delay: ${initialDelay}ms`);
+      
+      // Use setTimeout instead of setInterval for adaptive polling
+      const timeout = setTimeout(() => {
+        // Fetch immediately
+        fetchJobStatus();
+        
+        // Then set up interval with adaptive delay based on status
+        const adaptiveInterval = setInterval(() => {
+          // Calculate new delay based on current status and poll count
+          const newDelay = getPollingDelay(pollCount, resultData.status || 'default');
+          console.log(`Polling job ${id} with adaptive delay: ${newDelay}ms, status: ${resultData.status}`);
+          
+          // Clear current interval and set a new one with updated delay
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+          }
+          
+          setPollingInterval(setInterval(fetchJobStatus, newDelay));
+          
+        }, initialDelay);
+        
+        setPollingInterval(adaptiveInterval);
+      }, 0);
+      
+      // Store the initial timeout as our polling interval
+      setPollingInterval(timeout);
     }
 
     return () => {

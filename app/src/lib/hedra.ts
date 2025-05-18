@@ -330,21 +330,33 @@ async function waitForHedraJobCompletion(
           console.log(`Job status (attempt ${attempt}/${maxAttempts}):`, statusResponse.data);
           
           // Check if the job is complete
-          if (statusResponse.data.status === "completed") {
-            // Try different possible parameter names for the video URL
-            const possibleUrlParams = ["video_url", "url", "output_url", "media_url", "download_url"];
+          // According to Hedra API docs, status should be 'complete' not 'completed'
+          if (statusResponse.data.status === "complete" || statusResponse.data.status === "completed") {
+            // According to the API documentation, the URL is in the 'url' property
+            if (statusResponse.data.url) {
+              console.log(`Video URL found: ${statusResponse.data.url}`);
+              return statusResponse.data.url;
+            }
+            
+            // As a fallback, check a few other possible property names
+            const fallbackParams = ["video_url", "output_url", "media_url", "download_url"];
             
             // Check top level parameters
-            for (const param of possibleUrlParams) {
+            for (const param of fallbackParams) {
               if (statusResponse.data[param]) {
                 console.log(`Video URL found in parameter "${param}": ${statusResponse.data[param]}`);
                 return statusResponse.data[param];
               }
             }
             
-            // Check nested output object
+            // Check nested output object as a last resort
             if (statusResponse.data.output && typeof statusResponse.data.output === "object") {
-              for (const param of possibleUrlParams) {
+              if (statusResponse.data.output.url) {
+                console.log(`Video URL found in output.url: ${statusResponse.data.output.url}`);
+                return statusResponse.data.output.url;
+              }
+              
+              for (const param of fallbackParams) {
                 if (statusResponse.data.output[param]) {
                   console.log(`Video URL found in output.${param}: ${statusResponse.data.output[param]}`);
                   return statusResponse.data.output[param];
@@ -354,12 +366,13 @@ async function waitForHedraJobCompletion(
             
             // If status is completed but no URL found, try constructing it from the job ID
             console.log(`Status says completed but no URL found in response. Constructing URL from job ID.`);
-            return `https://storage.hedra.com/videos/${jobId}/output.mp4`;
-          } else if (statusResponse.data.status === "failed") {
-            throw new Error(`Hedra job failed: ${statusResponse.data.error || "Unknown reason"}`);
+            // Use the official API endpoint
+            return `https://api.hedra.com/web-app/public/generations/${jobId}/output`;
+          } else if (statusResponse.data.status === "error") {
+            throw new Error(`Hedra job failed: ${statusResponse.data.error_message || "Unknown reason"}`);
           } else {
             // Job is still processing, wait and try again
-            console.log(`Job is still processing (${statusResponse.data.progress || 0}% complete). Waiting before next check.`);
+            console.log(`Job is still processing (${statusResponse.data.progress * 100 || 0}% complete). Waiting before next check.`);
           }
         }
       } catch (error) {
@@ -381,11 +394,12 @@ async function waitForHedraJobCompletion(
     // If we've exhausted all status check attempts, try direct URL access as a last resort
     console.log(`Maximum status check attempts reached. Trying direct URL access as last resort.`);
     
+    // Update URL patterns to use the official API endpoints
     const possibleUrls = [
-      `https://storage.hedra.com/videos/${jobId}/output.mp4`,
-      `https://storage.hedra.com/generations/${jobId}/output.mp4`,
-      `https://media.hedra.com/${jobId}.mp4`,
-      `https://cdn.hedra.com/public/${jobId}/video.mp4`
+      `https://api.hedra.com/web-app/public/generations/${jobId}/output`,
+      `https://api.hedra.com/web-app/public/generations/${jobId}/video`,
+      `https://api.hedra.com/web-app/public/generations/${jobId}/download`,
+      `https://api.hedra.com/web-app/public/talking-photo-jobs/${jobId}/output`
     ];
     
     // Try each URL pattern until we find one that works
@@ -394,7 +408,10 @@ async function waitForHedraJobCompletion(
         await axios({
           method: 'head',
           url,
-          timeout: 5000
+          timeout: 5000,
+          headers: {
+            "X-API-Key": apiKey
+          }
         });
         
         console.log(`Found valid video URL through direct access: ${url}`);
@@ -404,8 +421,8 @@ async function waitForHedraJobCompletion(
       }
     }
     
-    // If all else fails, return the most likely URL and hope for the best
-    const fallbackUrl = `https://storage.hedra.com/videos/${jobId}/output.mp4`;
+    // If all else fails, return the official API endpoint as the fallback
+    const fallbackUrl = `https://api.hedra.com/web-app/public/generations/${jobId}/output`;
     console.log(`All attempts failed. Using most likely URL as final fallback: ${fallbackUrl}`);
     return fallbackUrl;
   } catch (error) {
