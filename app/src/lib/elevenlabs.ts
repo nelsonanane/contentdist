@@ -5,16 +5,17 @@ interface TtsRequest {
   voiceId?: string;
 }
 
+// Define a constant for the male voice ID to ensure consistency
+const MALE_VOICE_ID = "BtWabtumIemAotTjP5sk";
+
 export async function generateAudio({
   text,
   voiceId,
 }: TtsRequest): Promise<Buffer> {
   try {
-    // Use default voice ID if none specified
-    const selectedVoiceId =
-      voiceId ||
-      process.env.NEXT_PUBLIC_ELEVEN_LABS_VOICE_ID ||
-      "BtWabtumIemAotTjP5sk";
+    // Force male voice ID to be used regardless of environment variables
+    // This ensures we never accidentally use a female voice
+    const selectedVoiceId = voiceId || MALE_VOICE_ID;
 
     // Get API key from environment variables
     let apiKey = 
@@ -94,13 +95,16 @@ export function selectVoiceByCharacter(
   characterType: string,
   attributes: Record<string, string>
 ): string {
+  // Use our constant to ensure the male voice is always used for babies
+  const MALE_VOICE_ID = "BtWabtumIemAotTjP5sk";
+  
   // Mapping of character types to voice IDs
   // These are examples and would need to be updated with actual Eleven Labs voice IDs
   const voices = {
-    // Baby voices based on characteristics
+    // Baby voices - always use the same male voice for consistency
     baby: {
-      default: "BtWabtumIemAotTjP5sk", // Male baby voice
-      alternative: "jsCqWAovK2LkecY7zXl4", // Josh (child-like)
+      default: MALE_VOICE_ID, // Male baby voice
+      alternative: MALE_VOICE_ID, // Always use the same voice for babies to ensure consistency
     },
     // Animal voices based on species
     animal: {
@@ -141,6 +145,6 @@ export function selectVoiceByCharacter(
       );
 
     default:
-      return "BtWabtumIemAotTjP5sk"; // Male baby voice as default
+      return MALE_VOICE_ID; // Male baby voice as default
   }
 }

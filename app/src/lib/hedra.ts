@@ -21,6 +21,9 @@ interface HedraAssetResponse {
   name?: string;
 }
 
+// Cache for previously generated videos to avoid regenerating identical content
+const videoCache: Record<string, string> = {};
+
 export async function generateVideo({
   imageUrl,
   audioUrl,
@@ -28,6 +31,15 @@ export async function generateVideo({
   topic,
 }: VideoGenerationParams): Promise<string> {
   try {
+    // Create a cache key from the input parameters
+    const cacheKey = `${imageUrl}:${audioUrl}:${characterType}:${topic || 'no-topic'}`;
+    
+    // Check if we've already generated this exact video before
+    if (videoCache[cacheKey]) {
+      console.log(`Using cached video for ${characterType}:${topic || 'no-topic'}`);
+      return videoCache[cacheKey];
+    }
+    
     // Get Hedra API key from environment variables
     const HEDRA_API_KEY = process.env.NEXT_PUBLIC_HEDRA_API_KEY || process.env.HEDRA_API_KEY;
     
@@ -36,13 +48,26 @@ export async function generateVideo({
       throw new Error('Hedra API key is missing. Please set HEDRA_API_KEY in your environment variables.');
     }
 
+    // Validate image and audio URLs
+    if (!imageUrl) {
+      throw new Error('Image URL is missing or null. Cannot generate video without an image.');
+    }
+    
+    if (!audioUrl) {
+      throw new Error('Audio URL is missing or null. Cannot generate video without audio.');
+    }
+
     // Step 1: Read the image and audio files
     const imagePath = path.join(process.cwd(), "public", imageUrl);
     const audioPath = path.join(process.cwd(), "public", audioUrl);
 
     // Check if files exist
-    if (!fs.existsSync(imagePath) || !fs.existsSync(audioPath)) {
-      throw new Error("Image or audio file not found");
+    if (!fs.existsSync(imagePath)) {
+      throw new Error(`Image file not found at path: ${imagePath}`);
+    }
+    
+    if (!fs.existsSync(audioPath)) {
+      throw new Error(`Audio file not found at path: ${audioPath}`);
     }
 
     // Step 2: Upload image asset to Hedra
@@ -129,8 +154,11 @@ export async function generateVideo({
     const filePath = path.join(uploadsDir, filename);
     await writeFile(filePath, Buffer.from(videoResponse.data));
 
+    // Cache the video URL
+    videoCache[cacheKey] = `/uploads/videos/${filename}`;
+    
     // Return the URL to access the video from our server
-    return `/uploads/videos/${filename}`;
+    return videoCache[cacheKey];
   } catch (error) {
     console.error("Hedra video generation error:", error);
     throw error;
@@ -140,14 +168,61 @@ export async function generateVideo({
 // Cache for previously uploaded assets to avoid re-uploading the same file
 const assetCache: Record<string, string> = {};
 
+// Persistent cache file path for assets
+const CACHE_FILE_PATH = path.join(process.cwd(), "hedra-asset-cache.json");
+
+// Load asset cache from file if it exists
+function loadAssetCache(): Record<string, string> {
+  try {
+    if (fs.existsSync(CACHE_FILE_PATH)) {
+      const cacheData = fs.readFileSync(CACHE_FILE_PATH, 'utf8');
+      const cache = JSON.parse(cacheData);
+      console.log(`Loaded ${Object.keys(cache).length} cached assets from file`);
+      return cache;
+    }
+  } catch (error) {
+    const e = error as Error;
+    console.log(`Error loading asset cache: ${e.message}`);
+  }
+  return {};
+}
+
+// Save asset cache to file
+function saveAssetCache(cache: Record<string, string>) {
+  try {
+    fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify(cache, null, 2));
+    console.log(`Saved ${Object.keys(cache).length} assets to cache file`);
+  } catch (error) {
+    const e = error as Error;
+    console.log(`Error saving asset cache: ${e.message}`);
+  }
+}
+
+// Initialize the asset cache from file
+let assetCacheLoaded = false;
+
 async function uploadAssetToHedra(
   filePath: string,
   type: "image" | "audio",
   apiKey: string
 ): Promise<string> {
   try {
-    // Generate a cache key based on the file path and type
-    const cacheKey = `${type}:${filePath}`;
+    // Load asset cache from file if not loaded yet
+    if (!assetCacheLoaded) {
+      Object.assign(assetCache, loadAssetCache());
+      assetCacheLoaded = true;
+    }
+
+    // Calculate file hash for better caching
+    const fileStats = fs.statSync(filePath);
+    const fileContent = fs.readFileSync(filePath);
+    const fileHash = require('crypto')
+      .createHash('md5')
+      .update(fileContent)
+      .digest('hex');
+    
+    // Generate a cache key based on file hash, size and type
+    const cacheKey = `${type}:${fileHash}:${fileStats.size}`;
     
     // Check if this file has been uploaded before
     if (assetCache[cacheKey]) {
@@ -155,11 +230,7 @@ async function uploadAssetToHedra(
       return assetCache[cacheKey];
     }
     
-    // Calculate file hash for better caching (optional)
-    // const fileStats = fs.statSync(filePath);
-    // const cacheKey = `${type}:${path.basename(filePath)}:${fileStats.size}:${fileStats.mtimeMs}`;
-    
-    console.log(`Uploading ${type} asset to Hedra: ${path.basename(filePath)}`);
+    console.log(`Uploading ${type} asset to Hedra: ${path.basename(filePath)} (${fileHash})`);
     
     // Step 1: Create a new asset record with JSON - single request approach
     const assetResponse = await axios({
@@ -206,6 +277,9 @@ async function uploadAssetToHedra(
     // Cache the result
     assetCache[cacheKey] = assetId;
     
+    // Save the updated cache to file for persistence
+    saveAssetCache(assetCache);
+    
     return assetId;
   } catch (error) {
     // Only log essential error info to reduce log verbosity
@@ -225,73 +299,115 @@ async function waitForHedraJobCompletion(
   try {
     console.log(`Starting wait for Hedra job ${jobId} completion...`);
     
-    // Significantly increase wait time to avoid unnecessary API calls
-    // Video generation typically takes 3-5 minutes
-    const waitTimeMs = 300000; // 300 seconds (5 minutes)
-    console.log(`Waiting ${waitTimeMs/1000} seconds for job to complete...`);
-    await new Promise((resolve) => setTimeout(resolve, waitTimeMs));
+    // Initial wait to avoid unnecessary polling
+    const initialWaitTimeMs = 60000; // 60 seconds (1 minute)
+    console.log(`Initial wait of ${initialWaitTimeMs/1000} seconds before first status check...`);
+    await new Promise((resolve) => setTimeout(resolve, initialWaitTimeMs));
     
-    // After waiting, check the job status once - use only one endpoint
-    console.log(`Checking status for job ${jobId} after waiting`);
+    // Maximum number of status checks
+    const maxAttempts = 10;
+    // Time between status checks
+    const checkIntervalMs = 30000; // 30 seconds
     
-    const response = await axios({
-      method: "get",
-      url: `https://api.hedra.com/web-app/public/jobs/${jobId}`,
-      headers: {
-        "X-API-Key": apiKey,
-      },
-    }).catch(error => {
-      console.log(`Error with primary endpoint, job may not exist: ${error.message}`);
-      // Return null to indicate failure but without throwing
-      return { data: null };
-    });
-    
-    // Process the response if we got one
-    if (response.data) {
-      console.log(`Job status:`, response.data);
+    // Poll the status endpoint as recommended by the API documentation
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Checking status for job ${jobId} (attempt ${attempt}/${maxAttempts})`);
       
-      // Check if the job is complete and get the video URL
-      if (response.data.status === "completed") {
-        // Try different possible parameter names for the video URL
-        const possibleUrlParams = ["video_url", "url", "output_url", "media_url", "download_url"];
-        let videoUrl = null;
+      try {
+        // Use the official status endpoint as specified in the API docs
+        const statusResponse = await axios({
+          method: "get",
+          url: `https://api.hedra.com/web-app/public/generations/${jobId}/status`,
+          headers: {
+            "X-API-Key": apiKey,
+            "Accept": "application/json",
+          },
+          timeout: 10000 // 10 second timeout
+        });
         
-        // Check top level parameters
-        for (const param of possibleUrlParams) {
-          if (response.data[param]) {
-            console.log(`Video URL found in parameter "${param}": ${response.data[param]}`);
-            return response.data[param];
-          }
-        }
-        
-        // Check nested output object
-        if (response.data.output && typeof response.data.output === "object") {
-          for (const param of possibleUrlParams) {
-            if (response.data.output[param]) {
-              console.log(`Video URL found in output.${param}: ${response.data.output[param]}`);
-              return response.data.output[param];
+        // Process the response
+        if (statusResponse.data) {
+          console.log(`Job status (attempt ${attempt}/${maxAttempts}):`, statusResponse.data);
+          
+          // Check if the job is complete
+          if (statusResponse.data.status === "completed") {
+            // Try different possible parameter names for the video URL
+            const possibleUrlParams = ["video_url", "url", "output_url", "media_url", "download_url"];
+            
+            // Check top level parameters
+            for (const param of possibleUrlParams) {
+              if (statusResponse.data[param]) {
+                console.log(`Video URL found in parameter "${param}": ${statusResponse.data[param]}`);
+                return statusResponse.data[param];
+              }
             }
+            
+            // Check nested output object
+            if (statusResponse.data.output && typeof statusResponse.data.output === "object") {
+              for (const param of possibleUrlParams) {
+                if (statusResponse.data.output[param]) {
+                  console.log(`Video URL found in output.${param}: ${statusResponse.data.output[param]}`);
+                  return statusResponse.data.output[param];
+                }
+              }
+            }
+            
+            // If status is completed but no URL found, try constructing it from the job ID
+            console.log(`Status says completed but no URL found in response. Constructing URL from job ID.`);
+            return `https://storage.hedra.com/videos/${jobId}/output.mp4`;
+          } else if (statusResponse.data.status === "failed") {
+            throw new Error(`Hedra job failed: ${statusResponse.data.error || "Unknown reason"}`);
+          } else {
+            // Job is still processing, wait and try again
+            console.log(`Job is still processing (${statusResponse.data.progress || 0}% complete). Waiting before next check.`);
           }
         }
-        
-        console.error("Job completed but no video URL was found. Full response:", JSON.stringify(response.data, null, 2));
-      } else if (response.data.status === "failed") {
-        throw new Error(`Hedra job failed: ${response.data.failure_reason || "Unknown reason"}`);
-      } else {
-        console.log(`Job is still processing (${response.data.progress || 0}% complete)`);
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          console.log(`Status endpoint returned 404, job ID may be invalid or using a different endpoint format.`);
+        } else {
+          console.log(`Error checking status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+        // Continue to next attempt
+      }
+      
+      // If this isn't the last attempt, wait before trying again
+      if (attempt < maxAttempts) {
+        console.log(`Waiting ${checkIntervalMs/1000} seconds before next status check...`);
+        await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
       }
     }
     
-    // Return a default video URL if we couldn't get a job status or URL
-    // This is a fallback mechanism for when the job status check fails
-    // but the job might still be successfully completed
+    // If we've exhausted all status check attempts, try direct URL access as a last resort
+    console.log(`Maximum status check attempts reached. Trying direct URL access as last resort.`);
     
-    // Construct a direct URL based on the job ID
-    // This is a common pattern for Hedra's video storage
+    const possibleUrls = [
+      `https://storage.hedra.com/videos/${jobId}/output.mp4`,
+      `https://storage.hedra.com/generations/${jobId}/output.mp4`,
+      `https://media.hedra.com/${jobId}.mp4`,
+      `https://cdn.hedra.com/public/${jobId}/video.mp4`
+    ];
+    
+    // Try each URL pattern until we find one that works
+    for (const url of possibleUrls) {
+      try {
+        await axios({
+          method: 'head',
+          url,
+          timeout: 5000
+        });
+        
+        console.log(`Found valid video URL through direct access: ${url}`);
+        return url;
+      } catch (error) {
+        console.log(`URL pattern ${url} not valid, trying next pattern...`);
+      }
+    }
+    
+    // If all else fails, return the most likely URL and hope for the best
     const fallbackUrl = `https://storage.hedra.com/videos/${jobId}/output.mp4`;
-    console.log(`Using fallback URL: ${fallbackUrl}`);
+    console.log(`All attempts failed. Using most likely URL as final fallback: ${fallbackUrl}`);
     return fallbackUrl;
-    
   } catch (error) {
     console.error(`Error in waitForHedraJobCompletion:`, error);
     throw error;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAPIClient, getUserFromSession } from '@/lib/supabase-api';
+import { generateVideo } from '@/lib/hedra';
 import type { Database } from '@/lib/database.types';
 
 export async function POST(request: Request) {
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     // Get job data from database
     const { data: job, error: fetchError } = await supabase
       .from('content_generator_jobs')
-      .select('id, status')
+      .select('id, status, character_type, topic, image_url, audio_url, script, video_url')
       .eq('id', body.jobId)
       .eq('user_id', user.id)
       .single();
@@ -93,6 +94,8 @@ export async function POST(request: Request) {
       }
       
       // Step 4: Generate Video - Use asynchronous approach to avoid timeout errors
+      // Use the video generation function imported at the top of the file
+      
       // Update job status to indicate video generation is in progress
       const { error: updateError } = await supabase
         .from("content_generator_jobs")
@@ -105,29 +108,96 @@ export async function POST(request: Request) {
       }
       
       // Start video generation process in the background without waiting for it to complete
-      // Use setTimeout with 0 delay to run this asynchronously after the current execution context
-      setTimeout(async () => {
+      // We'll use a worker thread or background task pattern instead of setTimeout
+      // Create a background task manually
+      const backgroundTask = async () => {
         try {
-          // Call generate-video endpoint without waiting for it to complete
-          const videoResponse = await fetch(new URL('/api/content-generator/generate-video', request.url).toString(), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cookie': request.headers.get('cookie') || '',
-            },
-            body: JSON.stringify({ jobId: job.id })
+          console.log(`Starting background video generation for job ${job.id}`);
+          
+          // IMPORTANT: Re-fetch the job data to ensure we have the most up-to-date image_url and audio_url
+          // This addresses the issue where the background task starts with stale data
+          const { data: updatedJob, error: refetchError } = await supabase
+            .from('content_generator_jobs')
+            .select('id, status, character_type, topic, image_url, audio_url, script, video_url')
+            .eq('id', job.id)
+            .single();
+            
+          if (refetchError || !updatedJob) {
+            console.error('Error re-fetching job data:', refetchError);
+            await supabase
+              .from("content_generator_jobs")
+              .update({
+                status: "error",
+                error_message: "Failed to retrieve updated job data for video generation"
+              })
+              .eq("id", job.id);
+            return; // Exit early
+          }
+          
+          // Use the updated job data instead of potentially stale data
+          const currentJob = updatedJob;
+          
+          // Validate that we have both image and audio URLs before proceeding
+          if (!currentJob.image_url || !currentJob.audio_url) {
+            console.error(`Cannot generate video for job ${currentJob.id}: Missing required assets`);
+            console.error(`Image URL: ${currentJob.image_url || 'missing'}, Audio URL: ${currentJob.audio_url || 'missing'}`);
+            
+            // Update job status to error
+            await supabase
+              .from("content_generator_jobs")
+              .update({
+                status: "error",
+                error_message: `Cannot generate video: ${!currentJob.image_url ? 'Missing image' : 'Missing audio'}`
+              })
+              .eq("id", currentJob.id);
+              
+            return; // Exit early, don't attempt video generation
+          }
+          
+          // Generate video directly using the Hedra library
+          const videoUrl = await generateVideo({
+            imageUrl: currentJob.image_url,
+            audioUrl: currentJob.audio_url,
+            characterType: currentJob.character_type,
+            topic: currentJob.topic, // Include topic if available
           });
           
-          if (!videoResponse.ok) {
-            const videoError = await videoResponse.json();
-            console.error("Background video generation failed:", videoError);
-            // We don't throw here because this is running in the background
+          console.log(`Video generation completed for job ${job.id}, updating database with URL: ${videoUrl}`);
+          
+          // Update job with video URL and mark as completed
+          const { error: videoUpdateError } = await supabase
+            .from("content_generator_jobs")
+            .update({
+              video_url: videoUrl,
+              status: "completed",
+            })
+            .eq("id", job.id);
+            
+          if (videoUpdateError) {
+            console.error(`Error updating job ${job.id} with video:`, videoUpdateError);
           }
         } catch (error) {
           console.error("Background video generation error:", error);
-          // We don't throw here because this is running in the background
+          
+          // Update job status to error
+          try {
+            await supabase
+              .from("content_generator_jobs")
+              .update({
+                status: "error",
+                error_message: error instanceof Error ? error.message : 'Unknown error'
+              })
+              .eq("id", job.id);
+          } catch (dbError) {
+            console.error("Failed to update job status to error:", dbError);
+          }
         }
-      }, 0);
+      };
+      
+      // Start the background task without waiting for it
+      backgroundTask().catch(error => {
+        console.error(`Unhandled error in background task for job ${job.id}:`, error);
+      });
       
       // Continue without waiting for video generation to complete
       
